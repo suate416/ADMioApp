@@ -1,0 +1,65 @@
+// To parse this JSON data, do
+//
+//     final negocios = negociosFromJson(jsonString);
+
+import 'dart:convert';
+
+List<Negocios> negociosFromJson(String str) => List<Negocios>.from(json.decode(str).map((x) => Negocios.fromJson(x)));
+
+String negociosToJson(List<Negocios> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+
+class Negocios {
+    int id;
+    String nombre;
+    String nombreComercial;
+    String logo;
+    String rtn;
+    String telefono;
+    String email;
+    bool sarActivo;
+    bool activo;
+    DateTime fechaRegistro;
+    DateTime fechaActualizacion;
+
+    Negocios({
+        required this.id,
+        required this.nombre,
+        required this.nombreComercial,
+        required this.logo,
+        required this.rtn,
+        required this.telefono,
+        required this.email,
+        required this.sarActivo,
+        required this.activo,
+        required this.fechaRegistro,
+        required this.fechaActualizacion,
+    });
+
+    factory Negocios.fromJson(Map<String, dynamic> json) => Negocios(
+        id: json["id"],
+        nombre: json["nombre"],
+        nombreComercial: json["nombre_comercial"],
+        logo: json["logo"],
+        rtn: json["rtn"],
+        telefono: json["telefono"],
+        email: json["email"],
+        sarActivo: json["sar_activo"],
+        activo: json["activo"],
+        fechaRegistro: DateTime.parse(json["fecha_registro"]),
+        fechaActualizacion: DateTime.parse(json["fecha_actualizacion"]),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "nombre": nombre,
+        "nombre_comercial": nombreComercial,
+        "logo": logo,
+        "rtn": rtn,
+        "telefono": telefono,
+        "email": email,
+        "sar_activo": sarActivo,
+        "activo": activo,
+        "fecha_registro": fechaRegistro.toIso8601String(),
+        "fecha_actualizacion": fechaActualizacion.toIso8601String(),
+    };
+}
