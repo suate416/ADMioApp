@@ -68,6 +68,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.secondary,
+              width: 3,
+            ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.gray300.withOpacity(0.5),

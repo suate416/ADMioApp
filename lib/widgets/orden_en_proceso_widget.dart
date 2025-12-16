@@ -9,7 +9,7 @@ import '../screens/agregar_detalle_screen.dart';
 
 class OrdenEnProcesoWidget extends StatefulWidget {
   final Orden? ordenActiva;
-  final VoidCallback? onRefresh;
+  final Future<void> Function()? onRefresh;
   final VoidCallback? onCambiarTabServicios;
 
   const OrdenEnProcesoWidget({
@@ -162,7 +162,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text('${e.toString().replaceAll('Exception: ', '')}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -290,7 +290,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
         await _cargarDetalles();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text('${e.toString().replaceAll('Exception: ', '')}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -321,12 +321,87 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
     final allDetailsCompleted = detallesActivos.every((d) => d.estado.toLowerCase() == 'completado');
 
     if (!allDetailsCompleted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Todos los servicios deben estar completados para finalizar la orden.'),
-          backgroundColor: AppColors.red,
-        ),
-      );
+      // Obtener detalles que están en proceso
+      final detallesEnProceso = detallesActivos.where((d) => 
+        d.estado.toLowerCase() != 'completado' && 
+        d.estado.toLowerCase() != 'cancelado'
+      ).toList();
+
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 28),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'No se puede completar la orden',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Todos los servicios deben estar completados para finalizar la orden.',
+                  style: TextStyle(fontSize: 14),
+                ),
+                if (detallesEnProceso.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Servicios en proceso:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: detallesEnProceso.map((detalle) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Icon(Icons.circle, size: 8, color: AppColors.primary),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    detalle.nombre,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                ),
+                child: const Text('Entendido'),
+              ),
+            ],
+          ),
+        );
+      }
       return;
     }
 
@@ -414,36 +489,43 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
       );
       
       if (mounted) {
-        // Limpiar el estado local ya que la orden fue eliminada
+        // Limpiar el estado local ya que la orden fue cancelada
         setState(() {
           _orden = null;
           _detalles = [];
           _isLoading = false;
         });
         
- 
+        // Notificar al widget padre para que recargue las órdenes y actualice la pantalla
         if (widget.onRefresh != null) {
-          widget.onRefresh!();
+          await widget.onRefresh!();
         }
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Orden #${orden.id} cancelada exitosamente'),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        // Forzar actualización del widget después de recargar
+        if (mounted) {
+          setState(() {});
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Orden #${orden.id} cancelada exitosamente'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(16),
             ),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text('${e.toString().replaceAll('Exception: ', '')}'),
             backgroundColor: AppColors.danger,
             duration: const Duration(seconds: 4),
             behavior: SnackBarBehavior.floating,

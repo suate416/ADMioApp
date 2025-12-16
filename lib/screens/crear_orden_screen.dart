@@ -13,6 +13,7 @@ import '../widgets/servicios_y_paquetes_widget.dart';
 import '../config/app_colors.dart';
 import 'usuario_resumen.dart';
 import 'home_screen.dart';
+import 'login_screen.dart';
 
 class CrearOrdenScreen extends StatefulWidget {
   const CrearOrdenScreen({super.key});
@@ -305,6 +306,29 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
     }
   }
 
+  String _formatFechaHora(DateTime fecha) {
+    final fechaLocal = fecha.toLocal();
+    final dia = fechaLocal.day.toString().padLeft(2, '0');
+    final mes = fechaLocal.month.toString().padLeft(2, '0');
+    final anio = fechaLocal.year;
+    
+    int hora = fechaLocal.hour;
+    final minutos = fechaLocal.minute.toString().padLeft(2, '0');
+    String periodo = 'a.m.';
+    
+    if (hora == 0) {
+      hora = 12;
+      periodo = 'a.m.';
+    } else if (hora == 12) {
+      periodo = 'p.m.';
+    } else if (hora > 12) {
+      hora = hora - 12;
+      periodo = 'p.m.';
+    }
+    
+    return '$dia/$mes/$anio $hora:$minutos $periodo';
+  }
+
   Future<void> _abrirModalCrearOrden() async {
     if (_estacionSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -434,6 +458,41 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
     }
   }
 
+  Future<void> _handleLogout() async {
+    await _authService.logout();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _showMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Cerrar Sesión'),
+              onTap: () {
+                Navigator.pop(context);
+                _handleLogout();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoadingEstaciones) {
@@ -503,10 +562,9 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.more_vert, color: AppColors.black),
-                    onPressed: () {
-                      // TODO: Mostrar menú de opciones
-                    },
+                    icon: const Icon(Icons.menu, color: AppColors.black, size: 32),
+                    iconSize: 32,
+                    onPressed: () => _showMenu(context),
                   ),
                 ],
               ),
@@ -945,11 +1003,20 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   'Subtotal: Lps. ${orden.subtotal.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 13,
+                  ),
                 ),
                 if (orden.tiempoTotal > 0)
-                  Text('Tiempo: ${orden.tiempoTotal} min'),
+                  Text(
+                    'Tiempo: ${orden.tiempoTotal} min',
+                    style: TextStyle(
+                      fontSize: 13,
+                    ),
+                  ),
               ],
             ),
             trailing: Row(
@@ -1013,6 +1080,87 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Información de fechas
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.lightGray.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.gray300,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 16,
+                                        color: AppColors.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Fecha de Creación',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: AppColors.titleText,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 24),
+                                    child: Text(
+                                      _formatFechaHora(orden.fecha),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.gray700,
+                                      ),
+                                    ),
+                                  ),
+                                  if (orden.estado.toLowerCase() == 'completada' || 
+                                      orden.estado.toLowerCase() == 'facturada') ...[
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          size: 16,
+                                          color: AppColors.success,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Fecha de Completado',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: AppColors.titleText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 24),
+                                      child: Text(
+                                        _formatFechaHora(orden.fecha),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.success,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
                             if (orden.observaciones != null &&
                                 orden.observaciones!.isNotEmpty) ...[
                               const Text(

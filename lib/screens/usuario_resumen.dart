@@ -9,6 +9,7 @@ import '../widgets/bottom_nav_bar.dart';
 import '../config/app_colors.dart';
 import 'crear_orden_screen.dart';
 import 'home_screen.dart';
+import 'login_screen.dart';
 
 class UsuarioResumenScreen extends StatefulWidget {
   const UsuarioResumenScreen({super.key});
@@ -202,6 +203,41 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
     }
   }
 
+  Future<void> _handleLogout() async {
+    await _authService.logout();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _showMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Cerrar Sesión'),
+              onTap: () {
+                Navigator.pop(context);
+                _handleLogout();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -348,6 +384,11 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
                                     ),
                                   ],
                                 ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.menu, color: AppColors.black, size: 32),
+                                iconSize: 32,
+                                onPressed: () => _showMenu(context),
                               ),
                             ],
                           ),

@@ -53,7 +53,7 @@ class CardRol extends StatelessWidget {
         color: AppColors.white,
         border: Border.all(
           color: AppColors.secondary,
-          width: 1,
+          width: 5,
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
@@ -67,25 +67,23 @@ class CardRol extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-             Icon(
-                  Icons.cut,
-                  color: AppColors.primary,
-                  size: 24,
+            Image.asset(
+              'assets/images/ADMIOlogoBarras.png',
+              width: 70,
+              height: 70,
+              fit: BoxFit.contain,
+            ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/ADMIOlogotext.png',
+                  height: 50,
+                  fit: BoxFit.contain,
                 ),
-            
-              const SizedBox(width: 16),
-              Text(
-                "ADMio",
-                style: TextStyle(
-                  color: AppColors.titleText,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           GestureDetector(
             child: Container(

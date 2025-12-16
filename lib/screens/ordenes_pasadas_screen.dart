@@ -204,6 +204,29 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
     }
   }
 
+  String _formatFechaHora(DateTime fecha) {
+    final fechaLocal = fecha.toLocal();
+    final dia = fechaLocal.day.toString().padLeft(2, '0');
+    final mes = fechaLocal.month.toString().padLeft(2, '0');
+    final anio = fechaLocal.year;
+    
+    int hora = fechaLocal.hour;
+    final minutos = fechaLocal.minute.toString().padLeft(2, '0');
+    String periodo = 'a.m.';
+    
+    if (hora == 0) {
+      hora = 12;
+      periodo = 'a.m.';
+    } else if (hora == 12) {
+      periodo = 'p.m.';
+    } else if (hora > 12) {
+      hora = hora - 12;
+      periodo = 'p.m.';
+    }
+    
+    return '$dia/$mes/$anio $hora:$minutos $periodo';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -342,56 +365,7 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
       ),
       child: Column(
         children: [
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.secondary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                Icons.receipt_long,
-                color: AppColors.secondary,
-                size: 24,
-              ),
-            ),
-            title: Text(
-              'Orden #${orden.id}',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: AppColors.titleText,
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  'Estado: ${_formatEstado(orden.estado)}',
-                  style: TextStyle(
-                    color: _getEstadoColor(orden.estado),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  'Subtotal: Lps. ${orden.subtotal.toStringAsFixed(2)}',
-                ),
-                if (orden.tiempoTotal > 0)
-                  Text('Tiempo: ${orden.tiempoTotal} min'),
-              ],
-            ),
-            trailing: Icon(
-              isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-            ),
+          InkWell(
             onTap: () async {
               if (!isExpanded) {
                 await _cargarDetallesOrden(orden.id);
@@ -400,6 +374,122 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                 _expandedOrdenes[orden.id] = !isExpanded;
               });
             },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.secondary.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.receipt_long,
+                      color: AppColors.secondary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Orden #${orden.id}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: AppColors.titleText,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Estado: ${_formatEstado(orden.estado)}',
+                          style: TextStyle(
+                            color: _getEstadoColor(orden.estado),
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 12,
+                              color: AppColors.gray500,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                'Creada: ${_formatFechaHora(orden.fecha)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.gray600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (orden.estado.toLowerCase() == 'completada' || 
+                            orden.estado.toLowerCase() == 'facturada') ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle_outline,
+                                size: 12,
+                                color: AppColors.success,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'Completada: ${_formatFechaHora(orden.fecha)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.success,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Text(
+                          'Subtotal: Lps. ${orden.subtotal.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.gray700,
+                          ),
+                        ),
+                        if (orden.tiempoTotal > 0) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Tiempo: ${orden.tiempoTotal} min',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.gray700,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: AppColors.gray600,
+                  ),
+                ],
+              ),
+            ),
           ),
           if (isExpanded)
             Container(
@@ -432,6 +522,87 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Información de fechas
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.lightGray.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.gray300,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 16,
+                                        color: AppColors.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Fecha de Creación',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: AppColors.titleText,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 24),
+                                    child: Text(
+                                      _formatFechaHora(orden.fecha),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.gray700,
+                                      ),
+                                    ),
+                                  ),
+                                  if (orden.estado.toLowerCase() == 'completada' || 
+                                      orden.estado.toLowerCase() == 'facturada') ...[
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          size: 16,
+                                          color: AppColors.success,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Fecha de Completado',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: AppColors.titleText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 24),
+                                      child: Text(
+                                        _formatFechaHora(orden.fecha),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.success,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
                             if (orden.observaciones != null &&
                                 orden.observaciones!.isNotEmpty) ...[
                               const Text(

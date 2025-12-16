@@ -5,6 +5,7 @@ import '../models/usuario.model.dart';
 import 'home_screen.dart';
 import '../config/app_colors.dart';
 import '../widgets/login_form_widget.dart';
+import '../widgets/lista_usuarios_widget.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -148,38 +149,47 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } catch (e) {
         if (mounted) {
-          // SnackBar de error
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: AppColors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      e.toString().replaceAll('Exception: ', ''),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+          final errorMessage = e.toString().replaceAll('Exception: ', '');
+          
+          // Verificar si el error es por cuenta inactiva
+          if (errorMessage.toLowerCase().contains('inactiva') || 
+              errorMessage.toLowerCase().contains('inactivo')) {
+            // Mostrar modal para cuenta inactiva
+            _mostrarModalCuentaInactiva(context, errorMessage);
+          } else {
+            // SnackBar de error para otros errores
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: AppColors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        errorMessage,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                backgroundColor: AppColors.danger,
+                duration: const Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.all(16),
+                action: SnackBarAction(
+                  label: 'Cerrar',
+                  textColor: AppColors.white,
+                  onPressed: () {},
+                ),
               ),
-              backgroundColor: AppColors.danger,
-              duration: const Duration(seconds: 4),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              margin: const EdgeInsets.all(16),
-              action: SnackBarAction(
-                label: 'Cerrar',
-                textColor: AppColors.white,
-                onPressed: () {},
-              ),
-            ),
-          );
+            );
+          }
         }
       } finally {
         if (mounted) {
@@ -219,37 +229,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                      // Logo o título con diseño mejorado
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
+                      // Logo
+                      Center(
+                        child: Image.asset(
+                          'assets/images/ADMIOlogocuadro2.png',
+                          width: 180,
+                          height: 180,
+                          fit: BoxFit.contain,
                         ),
-                        child: Icon(
-                          Icons.business_center,
-                          size: 60,
-                          color: AppColors.primary,
+                      ),
+                      Center(
+                        child: Image.asset(
+                          'assets/images/ADMIOlogotext.png',
+                          height: 100,
+                          fit: BoxFit.contain,
                         ),
-                  ),
-                      const SizedBox(height: 24),
-                      Text(
-                    'Admio App',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                          fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                          color: AppColors.titleText,
-                          letterSpacing: 1.2,
-                    ),
-                  ),
+                      ),
                   const SizedBox(height: 8),
                       Text(
                     'Inicia sesión para continuar',
@@ -260,7 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w400,
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 20),
 
                       // Mostrar lista de usuarios guardados o formulario
                       if (_isLoadingUsuarios)
@@ -268,7 +263,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       else if (!_mostrarFormularioCompleto &&
                           _usuariosGuardados.isNotEmpty &&
                           _usuarioSeleccionado == null)
-                        _buildListaUsuarios()
+                        ListaUsuariosWidget(
+                          usuarios: _usuariosGuardados,
+                          usuarioSeleccionado: _usuarioSeleccionado,
+                          onUsuarioSeleccionado: _seleccionarUsuario,
+                          onMostrarFormulario: _mostrarFormulario,
+                        )
                       else
                         LoginFormWidget(
                           usuarioController: _usuarioController,
@@ -296,125 +296,108 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildListaUsuarios() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Lista de usuarios guardados
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.white,
+
+  void _mostrarModalCuentaInactiva(BuildContext context, String mensaje) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.gray300.withOpacity(0.5),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.warning,
+                size: 32,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Cuenta Inactiva',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.titleText,
+                  ),
+                ),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Selecciona una cuenta',
+                mensaje,
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.titleText,
+                  fontSize: 16,
+                  color: AppColors.bodyText,
+                  height: 1.5,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
-              ..._usuariosGuardados.map(
-                (usuario) => _buildUsuarioCard(usuario),
-              ),
-            ],
-          ),
-                  ),
-                  const SizedBox(height: 16),
-        // Botón para iniciar con otra cuenta
-        TextButton(
-          onPressed: _mostrarFormulario,
-          child: Text(
-            'Iniciar con otra cuenta',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUsuarioCard(Usuario usuario) {
-    final isSelected = _usuarioSeleccionado?.id == usuario.id;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () => _seleccionarUsuario(usuario),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primaryLight.withOpacity(0.2)
-                : AppColors.lightGray,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.gray300,
-              width: isSelected ? 2 : 1,
-                      ),
-                    ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.primaryLight,
-                child: Text(
-                  '${usuario.nombre[0]}${usuario.apellido[0]}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.warning.withOpacity(0.3),
+                    width: 1,
                   ),
                 ),
-                  ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      '${usuario.nombre} ${usuario.apellido}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.titleText,
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.warning,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Contacta a tu supervisor para reactivar tu cuenta.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.bodyText,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      usuario.usuarioUnico,
-                      style: TextStyle(fontSize: 14, color: AppColors.bodyText),
-                    ),
-                    Text(
-                      usuario.rol.nombre,
-                      style: TextStyle(fontSize: 12, color: AppColors.gray600),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-              if (isSelected)
-                Icon(Icons.check_circle, color: AppColors.primary),
             ],
           ),
-        ),
-      ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Entendido',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
