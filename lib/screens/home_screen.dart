@@ -3,13 +3,10 @@ import '../services/auth_service.dart';
 import '../services/negocio.service.dart';
 import '../models/usuario.model.dart';
 import '../models/negocio.model.dart';
-import '../widgets/bottom_nav_bar.dart';
 import '../widgets/card_negocio_nombre.dart';
 import '../widgets/lista_espera_widget.dart';
 import '../config/app_colors.dart';
-import 'crear_orden_screen.dart';
 import 'login_screen.dart';
-import 'usuario_resumen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Negocios? _negocio;
   bool _isLoading = true;
   String? _error;
-  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -56,19 +52,22 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         final negocio = await _negocioService.getNegocioById(usuario.negocioId);
         if (mounted) {
-      setState(() {
-        _usuario = usuario;
+          setState(() {
+            _usuario = usuario;
             _negocio = negocio;
             _isLoading = false;
-      });
+          });
+
         }
       } catch (e) {
         // Si falla cargar el negocio, continuar sin el logo
-      if (mounted) {
-        setState(() {
+        print('Error al cargar negocio: $e');
+        if (mounted) {
+          setState(() {
             _usuario = usuario;
-          _isLoading = false;
-        });
+            _negocio = null;
+            _isLoading = false;
+          });
         }
       }
     } catch (e) {
@@ -90,43 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onTabChanged(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    
-    // Manejar navegación según el tab seleccionado
-    switch (index) {
-      case 0:
-        // Home - ya estamos aquí
-        break;
-      case 1:
-        // Botón central - navegar a crear orden
-        Navigator.pushReplacement(
-      context,
-          MaterialPageRoute(
-            builder: (context) => const CrearOrdenScreen(),
-          ),
-    );
-        break;
-      case 2:
-        // Account - navegar a pantalla de resumen del usuario
-        Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-            builder: (context) => const UsuarioResumenScreen(),
-          ),
-        );
-        break;
-    }
-  }
-
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
+    return Container(
+      color: AppColors.white,
+      child: SafeArea(
         child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -139,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         _error!,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16, color: AppColors.titleText),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
@@ -150,9 +117,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
                 : _usuario == null
-                    ? const Center(child: Text('No se pudo cargar la información del usuario.'))
+                    ? const Center(
+                        child: Text(
+                          'No se pudo cargar la información del usuario.',
+                          style: TextStyle(color: AppColors.titleText),
+                        ),
+                      )
                     : RefreshIndicator(
                         onRefresh: _loadData,
+                        color: AppColors.secondary,
                         child: SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -170,37 +143,63 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: Column(
                                     children: [
                                       // Logo del negocio
-                                      if (_negocio != null && _negocio!.logo.isNotEmpty)
-                                        Container(
-                                          width: 150,
-                                          height: 150,
-                                          margin: const EdgeInsets.only(bottom: 16),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: AppColors.gray300,
-                                              width: 1,
-                            ),
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(12),
-                                            child: Image.network(
-                                              _negocio!.logo,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return _buildPlaceholderLogo();
-                                              },
-                                              loadingBuilder: (context, child, loadingProgress) {
-                                                if (loadingProgress == null) return child;
-                                                return const Center(
-                                                  child: CircularProgressIndicator(),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        )
-                                      else
-                                        _buildPlaceholderLogo(),
+                                      Builder(
+                                        builder: (context) {
+                                          // Verificar si hay logo válido
+                                          final hasValidLogo = _negocio != null && 
+                                              _negocio!.logo.isNotEmpty && 
+                                              _negocio!.logo.trim().isNotEmpty;
+                                          
+                                          if (hasValidLogo) {
+                                            final logoUri = Uri.tryParse(_negocio!.logo.trim());
+                                            final isValidUrl = logoUri != null && 
+                                                (logoUri.hasScheme && 
+                                                (logoUri.scheme == 'http' || logoUri.scheme == 'https'));
+                                            
+                                            if (isValidUrl) {
+                                              return Container(
+                                                width: 150,
+                                                height: 150,
+                                                margin: const EdgeInsets.only(bottom: 16),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: AppColors.gray300,
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Image.network(
+                                                    _negocio!.logo.trim(),
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      print('Error al cargar imagen del logo: $error');
+                                                      print('URL del logo: ${_negocio!.logo}');
+                                                      return _buildPlaceholderLogo();
+                                                    },
+                                                    loadingBuilder: (context, child, loadingProgress) {
+                                                      if (loadingProgress == null) return child;
+                                                      return Center(
+                                                        child: CircularProgressIndicator(
+                                                          value: loadingProgress.expectedTotalBytes != null
+                                                              ? loadingProgress.cumulativeBytesLoaded /
+                                                                  loadingProgress.expectedTotalBytes!
+                                                              : null,
+                                                          color: AppColors.secondary,
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                          
+                                          // Si no hay logo válido, mostrar placeholder
+                                          return _buildPlaceholderLogo();
+                                        },
+                                      ),
                                       const SizedBox(height: 8),
                                       // Nombre comercial
                                       Text(
@@ -210,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: const TextStyle(
                                           fontSize: 24,
                                         fontWeight: FontWeight.bold,
+                                        color: AppColors.titleText,
                                       ),
                                         textAlign: TextAlign.center,
                                       ),
@@ -235,10 +235,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-      ),
-      bottomNavigationBar: BuildBottomNavigationBar(
-        currentIndex: _currentIndex,
-        cambiarTab: _onTabChanged,
       ),
     );
   }

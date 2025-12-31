@@ -48,6 +48,7 @@ class BuildBottomNavigationBarState extends State<BuildBottomNavigationBar> {
               Expanded(
                 child: GestureDetector(
                   onTap: () => widget.cambiarTab(0),
+                  behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -69,6 +70,7 @@ class BuildBottomNavigationBarState extends State<BuildBottomNavigationBar> {
               Expanded(
                 child: GestureDetector(
                   onTap: () => widget.cambiarTab(2),
+                  behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -92,6 +94,7 @@ class BuildBottomNavigationBarState extends State<BuildBottomNavigationBar> {
           top: -25,
           child: GestureDetector(
             onTap: () => widget.cambiarTab(1),
+            behavior: HitTestBehavior.opaque,
             child: Container(
               width: 60,
               height: 60,

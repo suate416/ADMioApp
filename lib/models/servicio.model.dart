@@ -1,3 +1,4 @@
+// Modelo de datos para Servicio con información de precio (base y total), duración estimada y estado activo
 import 'dart:convert';
 
 Servicio servicioFromJson(String str) => Servicio.fromJson(json.decode(str));

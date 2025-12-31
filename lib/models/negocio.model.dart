@@ -1,3 +1,4 @@
+// Modelo de datos para Negocio con información completa (nombre, logo, RTN, teléfono, email, SAR)
 // To parse this JSON data, do
 //
 //     final negocios = negociosFromJson(jsonString);
@@ -37,14 +38,14 @@ class Negocios {
 
     factory Negocios.fromJson(Map<String, dynamic> json) => Negocios(
         id: json["id"],
-        nombre: json["nombre"],
-        nombreComercial: json["nombre_comercial"],
-        logo: json["logo"],
-        rtn: json["rtn"],
-        telefono: json["telefono"],
-        email: json["email"],
-        sarActivo: json["sar_activo"],
-        activo: json["activo"],
+        nombre: json["nombre"] ?? "",
+        nombreComercial: json["nombre_comercial"] ?? "",
+        logo: json["logo"]?.toString() ?? "",
+        rtn: json["rtn"] ?? "",
+        telefono: json["telefono"] ?? "",
+        email: json["email"] ?? "",
+        sarActivo: json["sar_activo"] ?? false,
+        activo: json["activo"] ?? true,
         fechaRegistro: DateTime.parse(json["fecha_registro"]),
         fechaActualizacion: DateTime.parse(json["fecha_actualizacion"]),
     );

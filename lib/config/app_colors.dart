@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-//colorescon el frontend web
-class AppColors {
-  AppColors._(); // Constructor privado para evitar instanciación
 
-  // Colores base
+class AppColors {
+  AppColors._(); // Constructor privado 
+
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
 

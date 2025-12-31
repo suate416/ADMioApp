@@ -60,7 +60,7 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
             })
             .toList();
         
-        // Cargar detalles de todas las órdenes para poder filtrar por servicio
+        // Cargar detalles de órdenes 
         for (var orden in ordenesFiltradas) {
           try {
             final detalles = await _ordenDetalleService.getOrdenesDetallesByOrden(orden.id);
@@ -109,7 +109,7 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
     // Filtro por fecha
     if (_tipoFiltroFecha != 'todos' && _fechaInicio != null && _fechaFin != null) {
       ordenesFiltradas = ordenesFiltradas.where((orden) {
-        final fechaOrden = orden.fecha;
+        final fechaOrden = orden.fechaRegistro;
         final fechaInicio = _fechaInicio ?? DateTime(1900);
         final fechaFin = _fechaFin ?? DateTime.now().add(const Duration(days: 365));
         
@@ -369,10 +369,17 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
             onTap: () async {
               if (!isExpanded) {
                 await _cargarDetallesOrden(orden.id);
+                // una sola orden expandida a la vez
+                setState(() {
+                  _expandedOrdenes.clear();
+                  _expandedOrdenes[orden.id] = true;
+                });
+              } else {
+                // Si ya está expandida, cerrarla
+                setState(() {
+                  _expandedOrdenes[orden.id] = false;
+                });
               }
-              setState(() {
-                _expandedOrdenes[orden.id] = !isExpanded;
-              });
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -407,7 +414,7 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
-                            color: AppColors.titleText,
+                            color: AppColors.black,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -415,30 +422,12 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                           'Estado: ${_formatEstado(orden.estado)}',
                           style: TextStyle(
                             color: _getEstadoColor(orden.estado),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 12,
-                              color: AppColors.gray500,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'Creada: ${_formatFechaHora(orden.fecha)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.gray600,
-                                ),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
                               ),
                             ),
-                          ],
-                        ),
+                  
+                        
                         if (orden.estado.toLowerCase() == 'completada' || 
                             orden.estado.toLowerCase() == 'facturada') ...[
                           const SizedBox(height: 4),
@@ -452,9 +441,10 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
-                                  'Completada: ${_formatFechaHora(orden.fecha)}',
+                                  'Completada: ${_formatFechaHora(orden.fechaActualizacion)}',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
                                     color: AppColors.success,
                                   ),
                                 ),
@@ -466,20 +456,11 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                         Text(
                           'Subtotal: Lps. ${orden.subtotal.toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: AppColors.gray700,
                           ),
                         ),
-                        if (orden.tiempoTotal > 0) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Tiempo: ${orden.tiempoTotal} min',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.gray700,
-                            ),
-                          ),
-                        ],
+                   
                       ],
                     ),
                   ),
@@ -548,8 +529,8 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                                         'Fecha de Creación',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: AppColors.titleText,
+                                          fontSize: 16,
+                                          color: AppColors.black,
                                         ),
                                       ),
                                     ],
@@ -558,9 +539,9 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                                   Padding(
                                     padding: const EdgeInsets.only(left: 24),
                                     child: Text(
-                                      _formatFechaHora(orden.fecha),
+                                      _formatFechaHora(orden.fechaRegistro),
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: 14,
                                         color: AppColors.gray700,
                                       ),
                                     ),
@@ -580,8 +561,8 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                                           'Fecha de Completado',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            color: AppColors.titleText,
+                                            fontSize: 16,
+                                            color: AppColors.black,
                                           ),
                                         ),
                                       ],
@@ -590,9 +571,9 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                                     Padding(
                                       padding: const EdgeInsets.only(left: 24),
                                       child: Text(
-                                        _formatFechaHora(orden.fecha),
+                                        _formatFechaHora(orden.fechaActualizacion),
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: 14,
                                           color: AppColors.success,
                                           fontWeight: FontWeight.w500,
                                         ),

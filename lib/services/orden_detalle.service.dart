@@ -1,3 +1,4 @@
+// Servicio para detalles de orden: crear, obtener por orden, actualizar estado y realizar soft delete (cancelación)
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/orden_detalle.model.dart';
@@ -6,7 +7,7 @@ import '../services/storage_service.dart';
 
 class OrdenDetalleService {
   final StorageService _storageService = StorageService();
-  
+
   Future<String?> _getToken() async {
     return await _storageService.getToken();
   }
@@ -26,11 +27,11 @@ class OrdenDetalleService {
       throw Exception('Debe proporcionar servicio_id o paquete_id');
     }
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.ordenesDetallesEndpoint}');
-    
-    final body = <String, dynamic>{
-      'orden_id': ordenId,
-    };
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.ordenesDetallesEndpoint}',
+    );
+
+    final body = <String, dynamic>{'orden_id': ordenId};
 
     if (servicioId != null) {
       body['servicio_id'] = servicioId;
@@ -41,7 +42,7 @@ class OrdenDetalleService {
     if (extras != null && extras.isNotEmpty) {
       body['extras'] = extras;
     }
-    
+
     final response = await http.post(
       uri,
       headers: {
@@ -54,7 +55,9 @@ class OrdenDetalleService {
     if (response.statusCode == 201) {
       final responseData = json.decode(response.body) as Map<String, dynamic>;
       if (responseData['success'] == true && responseData['data'] != null) {
-        return OrdenDetalle.fromJson(responseData['data'] as Map<String, dynamic>);
+        return OrdenDetalle.fromJson(
+          responseData['data'] as Map<String, dynamic>,
+        );
       }
       throw Exception(responseData['message'] ?? 'Error al crear el detalle');
     } else {
@@ -69,8 +72,10 @@ class OrdenDetalleService {
       throw Exception('No hay token de autenticación');
     }
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.ordenesDetallesEndpoint}/orden/$ordenId');
-    
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.ordenesDetallesEndpoint}/orden/$ordenId',
+    );
+
     final response = await http.get(
       uri,
       headers: {
@@ -89,16 +94,16 @@ class OrdenDetalleService {
             .toList();
       }
 
-      // Caso 2: el backend devuelve un objeto con { success, data }
       if (decoded is Map<String, dynamic>) {
         if (decoded['data'] is List) {
           final List<dynamic> data = decoded['data'] as List<dynamic>;
           return data
-              .map((json) => OrdenDetalle.fromJson(json as Map<String, dynamic>))
+              .map(
+                (json) => OrdenDetalle.fromJson(json as Map<String, dynamic>),
+              )
               .toList();
         }
 
-        // Si viene success=false con message, propagar ese mensaje
         if (decoded['success'] == false && decoded['message'] != null) {
           throw Exception(decoded['message']);
         }
@@ -116,7 +121,9 @@ class OrdenDetalleService {
       } catch (_) {
         // Ignorar error de parseo y lanzar mensaje genérico
       }
-      throw Exception('Error al obtener los detalles (código ${response.statusCode})');
+      throw Exception(
+        'Error al obtener los detalles (código ${response.statusCode})',
+      );
     }
   }
 
@@ -131,15 +138,17 @@ class OrdenDetalleService {
 
     // Validar que el estado sea uno de los permitidos
     if (!['en_proceso', 'completado', 'cancelado'].contains(estado)) {
-      throw Exception('Estado inválido. Debe ser: en_proceso, completado o cancelado');
+      throw Exception(
+        'Estado inválido. Debe ser: en_proceso, completado o cancelado',
+      );
     }
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.ordenesDetallesEndpoint}/$ordenDetalleId');
-    
-    final body = <String, dynamic>{
-      'estado': estado,
-    };
-    
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}${ApiConfig.ordenesDetallesEndpoint}/$ordenDetalleId',
+    );
+
+    final body = <String, dynamic>{'estado': estado};
+
     final response = await http.put(
       uri,
       headers: {
@@ -152,12 +161,18 @@ class OrdenDetalleService {
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body) as Map<String, dynamic>;
       if (responseData['success'] == true && responseData['data'] != null) {
-        return OrdenDetalle.fromJson(responseData['data'] as Map<String, dynamic>);
+        return OrdenDetalle.fromJson(
+          responseData['data'] as Map<String, dynamic>,
+        );
       }
-      throw Exception(responseData['message'] ?? 'Error al actualizar el estado del detalle');
+      throw Exception(
+        responseData['message'] ?? 'Error al actualizar el estado del detalle',
+      );
     } else {
       final responseData = json.decode(response.body) as Map<String, dynamic>?;
-      throw Exception(responseData?['message'] ?? 'Error al actualizar el estado del detalle');
+      throw Exception(
+        responseData?['message'] ?? 'Error al actualizar el estado del detalle',
+      );
     }
   }
 
@@ -190,4 +205,3 @@ class OrdenDetalleService {
     }
   }
 }
-

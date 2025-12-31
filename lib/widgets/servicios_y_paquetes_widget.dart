@@ -451,7 +451,7 @@ class _ServiciosYPaquetesWidgetState extends State<ServiciosYPaquetesWidget> {
                 if (servicio.duracionEstimada != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Duración: ${servicio.duracionEstimada} min',
+                    'Duración Estimada: ${servicio.duracionEstimada} min',
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.gray600,

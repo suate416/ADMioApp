@@ -1,11 +1,14 @@
+// Servicio para órdenes: crear, obtener por sucursal/ID, actualizar estado/observaciones y eliminar órdenes
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/orden.model.dart';
 import '../config/api_config.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
 class OrdenService {
   final StorageService _storageService = StorageService();
+  final AuthService _authService = AuthService();
   
   Future<String?> _getToken() async {
     return await _storageService.getToken();
@@ -38,6 +41,9 @@ class OrdenService {
       }),
     );
 
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
+
     if (response.statusCode == 201) {
       final responseData = json.decode(response.body) as Map<String, dynamic>;
       
@@ -68,6 +74,9 @@ class OrdenService {
       },
     );
 
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       return data.map((json) => Orden.fromJson(json as Map<String, dynamic>)).toList();
@@ -91,6 +100,9 @@ class OrdenService {
         'Authorization': 'Bearer $token',
       },
     );
+
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
 
     if (response.statusCode == 200) {
       return Orden.fromJson(json.decode(response.body) as Map<String, dynamic>);
@@ -128,6 +140,9 @@ class OrdenService {
       body: json.encode(body),
     );
 
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
+
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body) as Map<String, dynamic>;
       if (responseData['success'] == true && responseData['data'] != null) {
@@ -164,6 +179,9 @@ class OrdenService {
       body: json.encode(body),
     );
 
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
+
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body) as Map<String, dynamic>;
       if (responseData['success'] == true && responseData['data'] != null) {
@@ -191,6 +209,9 @@ class OrdenService {
         'Authorization': 'Bearer $token',
       },
     );
+
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body) as Map<String, dynamic>;

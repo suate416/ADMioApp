@@ -69,8 +69,8 @@ class CardRol extends StatelessWidget {
         children: [
             Image.asset(
               'assets/images/ADMIOlogoBarras.png',
-              width: 70,
-              height: 70,
+              width: 60,
+              height: 60,
               fit: BoxFit.contain,
             ),
           Expanded(
@@ -79,13 +79,15 @@ class CardRol extends StatelessWidget {
               children: [
                 Image.asset(
                   'assets/images/ADMIOlogotext.png',
-                  height: 50,
+                  height: 45,
                   fit: BoxFit.contain,
                 ),
               ],
             ),
           ),
           GestureDetector(
+            onTap: () => _showMenu(context),
+            behavior: HitTestBehavior.opaque,
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -102,7 +104,6 @@ class CardRol extends StatelessWidget {
                 size: 24,
               ),
             ),
-            onTap: () => _showMenu(context),
           ),
         ],
       ),

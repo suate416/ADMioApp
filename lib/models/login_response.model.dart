@@ -1,3 +1,4 @@
+// Modelo de respuesta del login que contiene: éxito de la operación, datos del usuario, token de autenticación, tiempo de expiración y mensaje opcional
 import 'usuario.model.dart';
 
 class LoginResponse {

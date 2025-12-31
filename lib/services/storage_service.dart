@@ -1,3 +1,4 @@
+// Servicio de almacenamiento local usando SharedPreferences: guarda/recupera token de autenticación, datos del usuario actual y lista de usuarios guardados para selección rápida
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/usuario.model.dart';

@@ -1,3 +1,4 @@
+// Modelo de datos para Orden con relación a Estación y Usuario, incluye helpers para parseo seguro de números y fechas
 import 'dart:convert';
 import 'usuario.model.dart';
 
@@ -16,6 +17,8 @@ class Orden {
   int tiempoTotal;
   String? observaciones;
   bool activo;
+  DateTime fechaRegistro;
+  DateTime fechaActualizacion;
   Estacion? estacion;
   Usuario? usuario;
 
@@ -30,22 +33,34 @@ class Orden {
     required this.tiempoTotal,
     this.observaciones,
     required this.activo,
+    required this.fechaRegistro,
+    required this.fechaActualizacion,
     this.estacion,
     this.usuario,
   });
 
   factory Orden.fromJson(Map<String, dynamic> json) {
+    final fecha = DateTime.parse(json["fecha"].toString());
+    final fechaRegistro = json["fecha_registro"] != null
+        ? DateTime.parse(json["fecha_registro"].toString())
+        : fecha;
+    final fechaActualizacion = json["fecha_actualizacion"] != null
+        ? DateTime.parse(json["fecha_actualizacion"].toString())
+        : fecha;
+    
     return Orden(
       id: _parseInt(json["id"]),
       sucursalId: _parseInt(json["sucursal_id"]),
       estacionId: _parseInt(json["estacion_id"]),
       usuarioId: _parseInt(json["usuario_id"]),
-      fecha: DateTime.parse(json["fecha"].toString()),
+      fecha: fecha,
       estado: json["estado"].toString(),
       subtotal: _parseDouble(json["subtotal"] ?? json["sub_total"] ?? 0.0),
       tiempoTotal: _parseInt(json["tiempo_total"] ?? json["tiempoTotal"] ?? 0),
       observaciones: json["observaciones"]?.toString(),
       activo: json["activo"] as bool? ?? true,
+      fechaRegistro: fechaRegistro,
+      fechaActualizacion: fechaActualizacion,
       estacion: json["estacion"] != null
           ? Estacion.fromJson(json["estacion"] as Map<String, dynamic>)
           : null,
@@ -131,6 +146,8 @@ class Orden {
         "tiempo_total": tiempoTotal,
         "observaciones": observaciones,
         "activo": activo,
+        "fecha_registro": fechaRegistro.toIso8601String(),
+        "fecha_actualizacion": fechaActualizacion.toIso8601String(),
       };
 }
 

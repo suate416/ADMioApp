@@ -6,6 +6,7 @@ import '../models/orden.model.dart';
 import '../models/orden_detalle.model.dart';
 import '../config/app_colors.dart';
 import '../screens/agregar_detalle_screen.dart';
+import 'servicio_card_widget.dart';
 
 class OrdenEnProcesoWidget extends StatefulWidget {
   final Orden? ordenActiva;
@@ -179,7 +180,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const Text('No'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -221,82 +222,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
     }
   }
 
-  Future<void> _cancelarDetalle(OrdenDetalle detalle) async {
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancelar Servicio'),
-        content: Text('¿Estás seguro de que deseas cancelar "${detalle.nombre}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.warning,
-              foregroundColor: AppColors.white,
-            ),
-            child: const Text('Cancelar'),
-          ),
-        ],
-      ),
-    );
 
-    if (confirmar != true) return;
-
-    // Actualizar el estado local inmediatamente para feedback visual
-    setState(() {
-      final index = _detalles.indexWhere((d) => d.id == detalle.id);
-      if (index != -1) {
-        final detalleActual = _detalles[index];
-        _detalles[index] = OrdenDetalle(
-          id: detalleActual.id,
-          ordenId: detalleActual.ordenId,
-          servicioId: detalleActual.servicioId,
-          paqueteId: detalleActual.paqueteId,
-          estado: 'cancelado',
-          subtotal: detalleActual.subtotal,
-          activo: detalleActual.activo,
-          servicio: detalleActual.servicio,
-          paquete: detalleActual.paquete,
-          extras: detalleActual.extras,
-        );
-      }
-    });
-
-    try {
-      await _ordenDetalleService.updateEstadoOrdenDetalle(
-        ordenDetalleId: detalle.id,
-        estado: 'cancelado',
-      );
-      // Recargar detalles para asegurar sincronización con el backend
-      await _cargarDetalles();
-      if (widget.onRefresh != null) {
-        widget.onRefresh!();
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Servicio cancelado exitosamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      // Si hay error, revertir el cambio local recargando desde el backend
-      if (mounted) {
-        await _cargarDetalles();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 
   Future<void> _completarOrden() async {
     if (_orden == null) return;
@@ -537,6 +463,15 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
         );
       }
     }
+    finally {
+      if (mounted) {
+        setState(() {
+          _orden = null;
+          _detalles = [];
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _agregarComentario() async {
@@ -707,7 +642,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
                           onPressed: _agregarComentario,
                           tooltip: 'Agregar comentario',
                         ),
-                        // Botón X para cancelar orden (solo si no está cancelada o completada)
+                        // Botón X para cancelar orden
                         if (_orden!.estado.toLowerCase() != 'cancelada' && 
                             _orden!.estado.toLowerCase() != 'completada' &&
                             _orden!.estado.toLowerCase() != 'facturada')
@@ -763,7 +698,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Buscar servicio',
+                hintText: 'Buscar servicio en la orden',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -825,203 +760,21 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
                       final isExpanded = _expandedDetalles[detalle.id] ?? false;
                       final isCompletado = detalle.estado.toLowerCase() == 'completado';
                       final isCancelado = detalle.estado.toLowerCase() == 'cancelado';
-                      
-                      // Obtener color del borde según el estado del detalle
-                      Color bordeColor;
-                      if (isCancelado) {
-                        bordeColor = AppColors.danger;
-                      } else if (isCompletado) {
-                        bordeColor = AppColors.success;
-                      } else {
-                        bordeColor = AppColors.primary;
-                      }
 
-                      final cardWidget = Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: bordeColor,
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.gray300.withOpacity(0.25),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            // Header del card
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _expandedDetalles[detalle.id] = !isExpanded;
-                                });
-                              },
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                leading: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: AppColors.secondary.withOpacity(0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    Icons.content_cut,
-                                    color: AppColors.secondary,
-                                    size: 24,
-                                  ),
-                                ),
-                                title: Text(
-                                  detalle.nombre,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: AppColors.titleText,
-                                  ),
-                                ),
-                                trailing: isCompletado || isCancelado
-                                    ? null
-                                    : IconButton(
-                                        icon: const Icon(
-                                          Icons.close,
-                                          color: AppColors.danger,
-                                        ),
-                                        onPressed: () {
-                                          _removerDetalle(detalle);
-                                        },
-                                        tooltip: 'Remover servicio',
-                                      ),
-                              ),
-                            ),
-                            // Contenido expandible
-                            if (isExpanded)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (detalle.servicio != null) ...[
-                                      if (detalle.servicio!.descripcion != null)
-                                        Text(
-                                          detalle.servicio!.descripcion!,
-                                          style: TextStyle(
-                                            color: AppColors.gray600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      const SizedBox(height: 8),
-                                    ],
-                                    if (detalle.extras != null &&
-                                        detalle.extras!.isNotEmpty) ...[
-                                      const Text(
-                                        'Extras:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      ...detalle.extras!.map((extra) => Padding(
-                                            padding: const EdgeInsets.only(left: 16, top: 4),
-                                            child: Text(
-                                              '- ${extra.servicioExtra?.nombre ?? 'Extra'}',
-                                              style: TextStyle(
-                                                color: AppColors.gray600,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          )),
-                                      const SizedBox(height: 8),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            // Footer del card
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.lightGray.withOpacity(0.3),
-                                borderRadius: const BorderRadius.vertical(
-                                  bottom: Radius.circular(10),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Total Servicio',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.gray600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Lps. ${detalle.subtotal.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        isCancelado
-                                            ? 'Cancelado'
-                                            : isCompletado
-                                                ? 'Completado'
-                                                : 'En Proceso',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: isCancelado
-                                              ? AppColors.warning
-                                              : isCompletado
-                                                  ? AppColors.success
-                                                  : AppColors.primary,
-                                        ),
-                                      ),
-                                      if (!isCancelado) ...[
-                                        const SizedBox(width: 8),
-                                        Switch(
-                                          value: isCompletado,
-                                          onChanged: (value) {
-                                            _cambiarEstadoDetalle(
-                                              detalle,
-                                              value ? 'completado' : 'en_proceso',
-                                            );
-                                          },
-                                          activeColor: AppColors.success,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      final cardWidget = ServicioCardWidget(
+                        detalle: detalle,
+                        isExpanded: isExpanded,
+                        onToggleExpanded: () {
+                          setState(() {
+                            _expandedDetalles[detalle.id] = !isExpanded;
+                          });
+                        },
+                        onRemoverDetalle: () {
+                          _removerDetalle(detalle);
+                        },
+                        onCambiarEstado: (nuevoEstado) {
+                          _cambiarEstadoDetalle(detalle, nuevoEstado);
+                        },
                       );
 
                       // Si está completado o cancelado, no mostrar Slidable
@@ -1037,12 +790,12 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
                           children: [
                             SlidableAction(
                               onPressed: (context) {
-                                _cancelarDetalle(detalle);
+                                _removerDetalle(detalle);
                               },
-                              backgroundColor: AppColors.warning,
+                              backgroundColor: AppColors.danger,
                               foregroundColor: AppColors.white,
                               icon: Icons.cancel,
-                              label: 'Cancelar',
+                              label: 'Remover',
                               borderRadius: const BorderRadius.only(
                                 topRight: Radius.circular(10),
                                 bottomRight: Radius.circular(10),
@@ -1055,14 +808,11 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
                           children: [
                             SlidableAction(
                               onPressed: (context) {
-                                _cambiarEstadoDetalle(
-                                  detalle,
-                                  'completado',
-                                );
+                                _cambiarEstadoDetalle(detalle, 'completado');
                               },
                               backgroundColor: AppColors.success,
                               foregroundColor: AppColors.white,
-                              icon: Icons.check,
+                              icon: Icons.check_box,
                               label: 'Completar',
                               borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(10),

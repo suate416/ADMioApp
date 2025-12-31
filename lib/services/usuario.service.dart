@@ -1,12 +1,11 @@
-
+// Servicio para obtener la lista de usuarios desde la API del backend
 import 'package:http/http.dart' as http;
 import '../models/usuario.model.dart';
+import '../config/api_config.dart';
 
 class UsuarioService {
-  final String _baseUrl = 'http://10.0.2.2:3011/api/usuarios';
-
   Future<List<Usuario>> fetchUsuarios() async {
-    final uri = Uri.parse(_baseUrl);
+    final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.usuariosEndpoint}');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {

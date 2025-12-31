@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../models/usuario.model.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
 import '../config/app_colors.dart';
 import '../widgets/login_form_widget.dart';
 import '../widgets/lista_usuarios_widget.dart';
@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
           true; // Mostrar formulario cuando se selecciona
       _passwordController.clear();
     });
-    // Enfocar el campo de contraseña después de un pequeño delay
+    // Enfocar el campo de contraseña
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _passwordFocusNode.requestFocus();
@@ -138,10 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
             // Navega después del SnackBar
             await Future.delayed(const Duration(seconds: 1));
             
-            // Navegar a la pantalla principal
+            // Navegar a la pantalla principal con bottom navigation bar
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
             );
           } else {
             throw Exception(loginResponse.message ?? 'Error en el login');

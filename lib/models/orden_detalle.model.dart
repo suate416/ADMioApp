@@ -1,3 +1,4 @@
+// Modelo de datos para OrdenDetalle con relación a Servicio/Paquete y getters para identificar tipo (servicio/paquete)
 import 'dart:convert';
 import 'servicio.model.dart';
 import 'paquete.model.dart';

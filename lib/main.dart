@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'services/auth_service.dart';
+import 'services/http_client_service.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_navigation_screen.dart';
 import 'config/app_colors.dart';
 
 void main() {
@@ -84,14 +85,16 @@ class _MyAppState extends State<MyApp> {
       );
     }
     
-    return _isLoggedIn ? const HomeScreen() : const LoginScreen();
+    return _isLoggedIn ? const MainNavigationScreen() : const LoginScreen();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Admio App',
+      title: 'ADMio',
       debugShowCheckedModeBanner: false,
+      // Usar el NavigatorKey global para poder redirigir desde cualquier parte
+      navigatorKey: HttpClientService.navigatorKey,
       theme: ThemeData(
         primaryColor: AppColors.primary,
         colorScheme: ColorScheme.fromSeed(

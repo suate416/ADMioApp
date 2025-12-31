@@ -1,11 +1,14 @@
+// Servicio para obtener negocios, maneja autenticación y diferentes formatos de respuesta
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/negocio.model.dart';
 import '../config/api_config.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
 class NegocioService {
   final StorageService _storageService = StorageService();
+  final AuthService _authService = AuthService();
   
   Future<String?> _getToken() async {
     return await _storageService.getToken();
@@ -28,6 +31,9 @@ class NegocioService {
       },
     );
 
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
+
     if (response.statusCode == 200) {
       final dynamic decoded = json.decode(response.body);
       
@@ -38,7 +44,7 @@ class NegocioService {
             .toList();
       }
 
-      // Caso 2: el backend devuelve un objeto con { success, data }
+
       if (decoded is Map<String, dynamic>) {
         if (decoded['data'] is List) {
           final List<dynamic> data = decoded['data'] as List<dynamic>;
@@ -47,7 +53,6 @@ class NegocioService {
               .toList();
         }
 
-        // Si viene success=false con message, propagar ese mensaje
         if (decoded['success'] == false && decoded['message'] != null) {
           throw Exception(decoded['message']);
         }
@@ -86,6 +91,9 @@ class NegocioService {
       },
     );
 
+    // Verificar si hay error de autenticación
+    await _authService.checkAuthError(response);
+
     if (response.statusCode == 200) {
       final dynamic decoded = json.decode(response.body);
       
@@ -94,19 +102,19 @@ class NegocioService {
         return Negocios.fromJson(decoded);
       }
 
-      // Caso 2: el backend devuelve un objeto con { success, data }
+
       if (decoded is Map<String, dynamic>) {
         if (decoded['data'] != null) {
           return Negocios.fromJson(decoded['data'] as Map<String, dynamic>);
         }
 
-        // Si viene success=false con message, propagar ese mensaje
+      
         if (decoded['success'] == false && decoded['message'] != null) {
           throw Exception(decoded['message']);
         }
       }
 
-      // Si llega aquí, el formato no es el esperado
+      //el formato no es el esperado
       throw Exception('Formato de respuesta inválido al obtener el negocio');
     } else {
       // Intentar extraer mensaje de error del backend

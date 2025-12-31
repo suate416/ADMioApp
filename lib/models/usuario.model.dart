@@ -1,3 +1,4 @@
+// Modelo de datos para Usuario, sucursal y rol, incluye relacion entre ellos
 // To parse this JSON data, do
 //
 //     final usuario = usuarioFromJson(jsonString);

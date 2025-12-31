@@ -5,10 +5,10 @@ import '../services/orden_detalle.service.dart';
 import '../models/usuario.model.dart';
 import '../models/orden.model.dart';
 import '../models/orden_detalle.model.dart';
-import '../widgets/bottom_nav_bar.dart';
 import '../config/app_colors.dart';
-import 'crear_orden_screen.dart';
-import 'home_screen.dart';
+import '../widgets/logout_menu_bottom_sheet.dart';
+import '../widgets/info_item_widget.dart';
+import '../widgets/stat_card_widget.dart';
 import 'login_screen.dart';
 
 class UsuarioResumenScreen extends StatefulWidget {
@@ -28,7 +28,6 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
   List<OrdenDetalle> _detalles = [];
   bool _isLoading = true;
   String? _error;
-  int _currentBottomNavIndex = 2; // Account está activo
   DateTime? _fechaInicio;
   DateTime? _fechaFin;
   String _tipoFiltro = 'hoy'; // 'todos', 'hoy', 'mes', 'rango', 'dia'
@@ -174,35 +173,6 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
     return ordenesFacturadas.length;
   }
 
-  int _getTotalTiempo() {
-    final ordenesFacturadas = _getOrdenesFacturadas();
-    return ordenesFacturadas.fold(0, (sum, orden) => sum + orden.tiempoTotal);
-  }
-
-  void _onBottomNavChanged(int index) {
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CrearOrdenScreen()),
-        );
-        break;
-      case 2:
-        // Account - ya estamos aquí
-        break;
-    }
-  }
-
   Future<void> _handleLogout() async {
     await _authService.logout();
     if (mounted) {
@@ -214,40 +184,16 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
   }
 
   void _showMenu(BuildContext context) {
-    showModalBottomSheet(
+    LogoutMenuBottomSheet.show(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Cerrar Sesión'),
-              onTap: () {
-                Navigator.pop(context);
-                _handleLogout();
-              },
-            ),
-          ],
-        ),
-      ),
+      onLogout: _handleLogout,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
-        bottomNavigationBar: BuildBottomNavigationBar(
-          currentIndex: _currentBottomNavIndex,
-          cambiarTab: _onBottomNavChanged,
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null) {
@@ -271,17 +217,12 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: BuildBottomNavigationBar(
-          currentIndex: _currentBottomNavIndex,
-          cambiarTab: _onBottomNavChanged,
-        ),
       );
     }
 
     final serviciosCount = _getServiciosCount();
     final totalIngresos = _getTotalIngresos();
     final totalOrdenes = _getTotalOrdenes();
-    final totalTiempo = _getTotalTiempo();
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -386,7 +327,11 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.menu, color: AppColors.black, size: 32),
+                                icon: const Icon(
+                                  Icons.menu,
+                                  color: AppColors.black,
+                                  size: 32,
+                                ),
                                 iconSize: 32,
                                 onPressed: () => _showMenu(context),
                               ),
@@ -398,10 +343,10 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: _buildInfoItem(
-                                  'Sucursal',
-                                  _usuario!.sucursal.nombre,
-                                  Icons.store,
+                                child: InfoItemWidget(
+                                  label: 'Sucursal',
+                                  value: _usuario!.sucursal.nombre,
+                                  icon: Icons.store,
                                 ),
                               ),
                               Container(
@@ -411,10 +356,10 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: _buildInfoItem(
-                                  'Negocio',
-                                  _usuario!.negocio.nombre,
-                                  Icons.business,
+                                child: InfoItemWidget(
+                                  label: 'Negocio',
+                                  value: _usuario!.negocio.nombre,
+                                  icon: Icons.business,
                                 ),
                               ),
                             ],
@@ -444,33 +389,24 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard(
-                        'Total Órdenes',
-                        totalOrdenes.toString(),
-                        Icons.receipt_long,
-                        AppColors.primary,
+                      child: StatCardWidget(
+                        label: 'Total Órdenes',
+                        value: totalOrdenes.toString(),
+                        icon: Icons.receipt_long,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildStatCard(
-                        'Total Ingreso al Negocio',
-                        'Lps. ${totalIngresos.toStringAsFixed(2)}',
-                        Icons.attach_money,
-                        AppColors.primary,
+                      child: StatCardWidget(
+                        label: 'Total Ingreso al Negocio',
+                        value: 'Lps. ${totalIngresos.toStringAsFixed(2)}',
+                        icon: Icons.attach_money,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                _buildStatCard(
-                  'Tiempo Total',
-                  '${totalTiempo} min',
-                  Icons.access_time,
-                  AppColors.info,
-                  fullWidth: true,
-                ),
-                const SizedBox(height: 24),
 
                 // Servicios realizados
                 Text(
@@ -586,112 +522,9 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BuildBottomNavigationBar(
-        currentIndex: _currentBottomNavIndex,
-        cambiarTab: _onBottomNavChanged,
-      ),
     );
   }
 
-  Widget _buildInfoItem(String label, String value, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(icon, size: 16, color: AppColors.secondary),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.gray600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppColors.titleText,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color, {
-    bool fullWidth = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gray300.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.gray100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 35),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.gray600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.titleText,
-                height: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildFiltroFecha() {
     final tieneFiltro = _tipoFiltro != 'todos';

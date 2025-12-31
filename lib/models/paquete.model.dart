@@ -1,3 +1,4 @@
+// Modelo de datos para Paquete con lista opcional de Servicios incluidos
 import 'dart:convert';
 import 'servicio.model.dart';
 

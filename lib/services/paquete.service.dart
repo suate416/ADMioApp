@@ -1,3 +1,4 @@
+// Servicio para obtener paquetes activos filtrados por negocio 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/paquete.model.dart';
