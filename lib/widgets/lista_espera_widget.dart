@@ -183,124 +183,129 @@ class _ListaEsperaWidgetState extends State<ListaEsperaWidget> {
               ),
             )
           else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _listaEspera.length,
-              itemBuilder: (context, index) {
-                final orden = _listaEspera[index];
-                final isLast = index == _listaEspera.length - 1;
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.secondary.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${index + 1}',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.secondary,
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: _listaEspera.length,
+                itemBuilder: (context, index) {
+                  final orden = _listaEspera[index];
+                  final isLast = index == _listaEspera.length - 1;
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.secondary.withOpacity(0.3),
+                                  width: 1,
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Orden #${orden.id}',
+                              child: Center(
+                                child: Text(
+                                  '${index + 1}',
                                   style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.titleText,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.secondary,
                                   ),
                                 ),
-                                if (orden.usuario != null) ...[
-                                  const SizedBox(height: 4),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    '${orden.usuario!.nombre} ${orden.usuario!.apellido}',
+                                    'Orden #${orden.id}',
                                     style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.gray600,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.titleText,
                                     ),
                                   ),
-                                ],
-                                if (orden.estacion != null) ...[
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.place,
-                                        size: 14,
-                                        color: AppColors.gray500,
+                                  if (orden.usuario != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${orden.usuario!.nombre} ${orden.usuario!.apellido}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.gray600,
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Estación: ${orden.estacion!.codigo}',
-                                        style: TextStyle(
-                                          fontSize: 12,
+                                    ),
+                                  ],
+                                  if (orden.estacion != null) ...[
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.place,
+                                          size: 14,
                                           color: AppColors.gray500,
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Estación: ${orden.estacion!.codigo}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.gray500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.warning.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: AppColors.warning.withOpacity(0.3),
-                                width: 1,
                               ),
                             ),
-                            child: Text(
-                              'Pendiente',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.warning,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.warning.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.warning.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                'Pendiente',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.warning,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    if (!isLast)
-                      Container(
-                        height: 1,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                        color: AppColors.gray300,
-                      ),
-                  ],
-                );
-              },
+                      if (!isLast)
+                        Container(
+                          height: 1,
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          color: AppColors.gray300,
+                        ),
+                    ],
+                  );
+                },
+              ),
             ),
         ],
       ),

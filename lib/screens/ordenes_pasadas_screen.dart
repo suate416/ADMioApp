@@ -26,9 +26,9 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
   
   List<Orden> _ordenes = [];
   List<Orden> _ordenesFiltradas = [];
-  Map<int, List<OrdenDetalle>> _detallesOrdenes = {};
-  Map<int, bool> _expandedOrdenes = {};
-  Map<int, bool> _cargandoDetalles = {};
+  final Map<int, List<OrdenDetalle>> _detallesOrdenes = {};
+  final Map<int, bool> _expandedOrdenes = {};
+  final Map<int, bool> _cargandoDetalles = {};
   bool _isLoading = true;
   
   // Filtros

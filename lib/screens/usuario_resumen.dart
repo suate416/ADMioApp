@@ -1,3 +1,4 @@
+import 'package:admio_app_1/widgets/card_negocio_nombre.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/orden.service.dart';
@@ -7,9 +8,11 @@ import '../models/orden.model.dart';
 import '../models/orden_detalle.model.dart';
 import '../config/app_colors.dart';
 import '../widgets/logout_menu_bottom_sheet.dart';
-import '../widgets/info_item_widget.dart';
 import '../widgets/stat_card_widget.dart';
 import 'login_screen.dart';
+import '../services/negocio.service.dart';
+import '../models/negocio.model.dart';
+
 
 class UsuarioResumenScreen extends StatefulWidget {
   const UsuarioResumenScreen({super.key});
@@ -22,7 +25,8 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
   final AuthService _authService = AuthService();
   final OrdenService _ordenService = OrdenService();
   final OrdenDetalleService _ordenDetalleService = OrdenDetalleService();
-
+  final NegocioService _negocioService = NegocioService();
+  Negocios? _negocio;
   Usuario? _usuario;
   List<Orden> _ordenes = [];
   List<OrdenDetalle> _detalles = [];
@@ -43,60 +47,78 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  setState(() {
+    _isLoading = true;
+    _error = null;
+  });
 
+  try {
+    final usuario = await _authService.getUsuario();
+    if (usuario == null) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      return;
+    }
+
+    // Cargar información completa del negocio
     try {
-      final usuario = await _authService.getUsuario();
-      if (usuario == null) {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-        return;
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _usuario = usuario;
-      });
-
-      // Cargar todas las órdenes del usuario
-      final ordenes = await _ordenService.getOrdenesBySucursal(
-        usuario.sucursalId,
-      );
-      final ordenesUsuario = ordenes
-          .where((orden) => orden.usuarioId == usuario.id)
-          .toList();
-
-      // Cargar detalles de todas las órdenes
-      List<OrdenDetalle> todosLosDetalles = [];
-      for (var orden in ordenesUsuario) {
-        try {
-          final detalles = await _ordenDetalleService.getOrdenesDetallesByOrden(
-            orden.id,
-          );
-          todosLosDetalles.addAll(detalles);
-        } catch (e) {}
-      }
-
+      final negocio = await _negocioService.getNegocioById(usuario.negocioId);
       if (mounted) {
         setState(() {
-          _ordenes = ordenesUsuario;
-          _detalles = todosLosDetalles;
-          _isLoading = false;
+          _usuario = usuario;
+          _negocio = negocio;
         });
       }
     } catch (e) {
+      // Si falla cargar el negocio, continuar sin el logo
+
       if (mounted) {
         setState(() {
-          _error = e.toString().replaceAll('Exception: ', '');
-          _isLoading = false;
+          _usuario = usuario;
+          _negocio = null;
         });
       }
     }
+
+    // Cargar todas las órdenes del usuario
+    final ordenes = await _ordenService.getOrdenesBySucursal(
+      usuario.sucursalId,
+    );
+    final ordenesUsuario = ordenes
+        .where((orden) => orden.usuarioId == usuario.id)
+        .toList();
+
+    // Cargar detalles de todas las órdenes
+    List<OrdenDetalle> todosLosDetalles = [];
+    for (var orden in ordenesUsuario) {
+      try {
+        final detalles = await _ordenDetalleService.getOrdenesDetallesByOrden(
+          orden.id,
+        );
+        todosLosDetalles.addAll(detalles);
+      } catch (e) {
+        // Si falla cargar los detalles de una orden, continuar con las demás
+        debugPrint('Error al cargar detalles de la orden ${orden.id}: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _ordenes = ordenesUsuario;
+        _detalles = todosLosDetalles;
+        _isLoading = false;
+      });
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+        _isLoading = false;
+      });
+    }
   }
+}
 
   // Obtener órdenes facturadas
   List<Orden> _getOrdenesFacturadas() {
@@ -182,6 +204,7 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
       );
     }
   }
+  
 
   void _showMenu(BuildContext context) {
     LogoutMenuBottomSheet.show(
@@ -235,141 +258,11 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header con información del usuario
-                if (_usuario != null) ...[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.secondary, width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.gray300.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.secondary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: CircleAvatar(
-                                  radius: 28,
-                                  backgroundColor: AppColors.white,
-                                  child: Text(
-                                    '${_usuario!.nombre[0]}${_usuario!.apellido[0]}',
-                                    style: TextStyle(
-                                      color: AppColors.secondary,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${_usuario!.nombre} ${_usuario!.apellido}',
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.titleText,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      _usuario!.usuarioUnico,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: AppColors.gray600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondary.withOpacity(
-                                          0.1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: AppColors.secondary
-                                              .withOpacity(0.3),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        _usuario!.rol.nombre,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.secondary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.menu,
-                                  color: AppColors.black,
-                                  size: 32,
-                                ),
-                                iconSize: 32,
-                                onPressed: () => _showMenu(context),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Container(height: 1, color: AppColors.gray300),
-                          const SizedBox(height: 20),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InfoItemWidget(
-                                  label: 'Sucursal',
-                                  value: _usuario!.sucursal.nombre,
-                                  icon: Icons.store,
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: AppColors.gray300,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: InfoItemWidget(
-                                  label: 'Negocio',
-                                  value: _usuario!.negocio.nombre,
-                                  icon: Icons.business,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+               CardRol(
+                        usuario: _usuario!,
+                        logoUrl: _negocio?.logo,
                       ),
-                    ),
-                  ),
-                ],
-
+                      SizedBox(height:25),
                 // Resumen de estadísticas
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -749,6 +642,8 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
       },
     );
 
+    if (!mounted) return;
+    
     if (fechaSeleccionada != null) {
       setState(() {
         _fechaInicio = DateTime(
@@ -801,6 +696,8 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
       },
     );
 
+    if (!mounted) return;
+    
     if (fechaInicioSeleccionada == null) {
       setState(() {
         _tipoFiltro = 'todos';
@@ -831,6 +728,8 @@ class _UsuarioResumenScreenState extends State<UsuarioResumenScreen> {
         );
       },
     );
+
+    if (!mounted) return;
 
     if (fechaFinSeleccionada != null) {
       setState(() {

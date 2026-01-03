@@ -37,11 +37,11 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
   List<Orden> _todasLasOrdenes = [];
   bool _isLoading = false;
   bool _isLoadingEstaciones = true;
-  bool _isLoadingOrdenes = false;
+  final bool _isLoadingOrdenes = false;
   bool _tieneEstacionAsignada = false;
   String? _error;
   int _selectedTab = 2; // 0: Pasadas, 1: Servicios, 2: En Proceso
-  Map<int, List<OrdenDetalle>> _detallesOrdenes =
+  final Map<int, List<OrdenDetalle>> _detallesOrdenes =
       {}; // Cache de detalles por orden (usado para cargar detalles de órdenes pasadas)
 
   @override
@@ -87,7 +87,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           return;
         }
       } catch (e) {
-        
+        debugPrint('Error al cargar estaciones: $e');
       }
 
       final estaciones = await _estacionService.getEstacionesBySucursal(
@@ -184,12 +184,14 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
 
   Future<void> _abrirModalCrearOrden() async {
     if (_estacionSeleccionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona una estación'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor selecciona una estación'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
 
@@ -219,6 +221,8 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
       }
       return;
     }
+
+    if (!mounted) return;
 
     await showModalBottomSheet(
       context: context,

@@ -29,7 +29,7 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
   final OrdenService _ordenService = OrdenService();
   
   List<OrdenDetalle> _detalles = [];
-  Map<int, bool> _expandedDetalles = {};
+  final Map<int, bool> _expandedDetalles = {};
   String _searchQuery = '';
   bool _isLoading = true;
   Orden? _orden;

@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (!mounted) return;
-      
+
       // Cargar información completa del negocio
       try {
         final negocio = await _negocioService.getNegocioById(usuario.negocioId);
@@ -57,11 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
             _negocio = negocio;
             _isLoading = false;
           });
-
         }
       } catch (e) {
         // Si falla cargar el negocio, continuar sin el logo
-        print('Error al cargar negocio: $e');
+
         if (mounted) {
           setState(() {
             _usuario = usuario;
@@ -95,169 +94,103 @@ class _HomeScreenState extends State<HomeScreen> {
       color: AppColors.white,
       child: SafeArea(
         child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.titleText,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadData,
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
+              )
+            : _usuario == null
+            ? const Center(
+                child: Text(
+                  'No se pudo cargar la información del usuario.',
+                  style: TextStyle(color: AppColors.titleText),
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadData,
+                color: AppColors.secondary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text(
-                        _error!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16, color: AppColors.titleText),
+                      // Card Rol al comienzo
+                      CardRol(
+                        usuario: _usuario!,
+                        logoUrl: _negocio?.logo,
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadData,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                )
-                : _usuario == null
-                    ? const Center(
-                        child: Text(
-                          'No se pudo cargar la información del usuario.',
-                          style: TextStyle(color: AppColors.titleText),
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadData,
-                        color: AppColors.secondary,
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Column(
-                            children: [
-                              // Card Rol al comienzo
-                              if (_usuario!.rol.nombre.isNotEmpty)
-                                CardRol(rol: _usuario!.rol.nombre),
-                              // Logo del negocio
-                              if (_usuario!.negocio.nombreComercial.isNotEmpty ||
-                                  _usuario!.negocio.nombre.isNotEmpty)
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    children: [
-                                      // Logo del negocio
-                                      Builder(
-                                        builder: (context) {
-                                          // Verificar si hay logo válido
-                                          final hasValidLogo = _negocio != null && 
-                                              _negocio!.logo.isNotEmpty && 
-                                              _negocio!.logo.trim().isNotEmpty;
-                                          
-                                          if (hasValidLogo) {
-                                            final logoUri = Uri.tryParse(_negocio!.logo.trim());
-                                            final isValidUrl = logoUri != null && 
-                                                (logoUri.hasScheme && 
-                                                (logoUri.scheme == 'http' || logoUri.scheme == 'https'));
-                                            
-                                            if (isValidUrl) {
-                                              return Container(
-                                                width: 150,
-                                                height: 150,
-                                                margin: const EdgeInsets.only(bottom: 16),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: AppColors.gray300,
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  child: Image.network(
-                                                    _negocio!.logo.trim(),
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder: (context, error, stackTrace) {
-                                                      print('Error al cargar imagen del logo: $error');
-                                                      print('URL del logo: ${_negocio!.logo}');
-                                                      return _buildPlaceholderLogo();
-                                                    },
-                                                    loadingBuilder: (context, child, loadingProgress) {
-                                                      if (loadingProgress == null) return child;
-                                                      return Center(
-                                                        child: CircularProgressIndicator(
-                                                          value: loadingProgress.expectedTotalBytes != null
-                                                              ? loadingProgress.cumulativeBytesLoaded /
-                                                                  loadingProgress.expectedTotalBytes!
-                                                              : null,
-                                                          color: AppColors.secondary,
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          }
-                                          
-                                          // Si no hay logo válido, mostrar placeholder
-                                          return _buildPlaceholderLogo();
-                                        },
-                                      ),
-                                      const SizedBox(height: 8),
-                                      // Nombre comercial
-                                      Text(
-                                        _usuario!.negocio.nombreComercial.isNotEmpty
-                                            ? _usuario!.negocio.nombreComercial
-                                            : _usuario!.negocio.nombre,
-                                      style: const TextStyle(
-                                          fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.titleText,
-                                      ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      // Nombre del negocio
-                                      Text(
-                                        _usuario!.negocio.nombre,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: AppColors.gray600,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        ),
-                                    ],
-                                  ),
+                      SizedBox(height:50),
+                      // Botón para agregar cliente a lista de espera
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  'Funcionalidad en desarrollo', style: TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w600),
                                 ),
-                              // Lista de espera de clientes
-                              if (_usuario != null)
-                                ListaEsperaWidget(
-                                  sucursalId: _usuario!.sucursalId,
+                                backgroundColor: AppColors.secondary,
+                                behavior: SnackBarBehavior.floating,
+                                margin: const EdgeInsets.all(16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                            ],
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.person_add, size: 20),
+                          label: const Text(
+                            'Agregar Cliente a Lista',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.secondary,
+                            foregroundColor: AppColors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
                           ),
                         ),
                       ),
+                      // Lista de espera de clientes
+                      ListaEsperaWidget(sucursalId: _usuario!.sucursalId),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }
-
-  Widget _buildPlaceholderLogo() {
-    return Container(
-      width: 150,
-      height: 150,
-      decoration: BoxDecoration(
-        color: AppColors.lightGray,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.gray300,
-          width: 1,
-        ),
-      ),
-      child: Icon(
-        Icons.business,
-        size: 64,
-        color: AppColors.gray500,
-      ),
-    );
-  }
-
 }
-
