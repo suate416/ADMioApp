@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../config/app_colors.dart';
 import '../models/usuario.model.dart';
 
@@ -52,9 +53,19 @@ class ListaUsuariosWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              ...usuarios.map(
-                (usuario) => _buildUsuarioCard(usuario),
-              ),
+              ...usuarios.asMap().entries.map((entry) {
+                final index = entry.key;
+                final usuario = entry.value;
+                return _buildUsuarioCard(usuario)
+                    .animate()
+                    .fadeIn(duration: 700.ms, delay: (index * 100).ms)
+                    .slideY(
+                      begin: 0.1,
+                      end: 0,
+                      duration: 700.ms,
+                      delay: (index * 100).ms,
+                    );
+              }),
             ],
           ),
         ),
@@ -70,7 +81,15 @@ class ListaUsuariosWidget extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 700.ms, delay: (usuarios.length * 100).ms)
+            .slideY(
+              begin: 0.1,
+              end: 0,
+              duration: 700.ms,
+              delay: (usuarios.length * 100).ms,
+            ),
       ],
     );
   }

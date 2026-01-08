@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../models/usuario.model.dart';
@@ -236,14 +237,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 180,
                           height: 180,
                           fit: BoxFit.contain,
-                        ),
+                        )
+                            .animate()
+                            .fadeIn(duration: 700.ms)
+                            .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1), duration: 700.ms),
                       ),
                       Center(
                         child: Image.asset(
                           'assets/images/ADMIOlogotext.png',
                           height: 100,
                           fit: BoxFit.contain,
-                        ),
+                        )
+                            .animate()
+                            .fadeIn(duration: 700.ms, delay: 100.ms)
+                            .slideY(begin: 0.1, end: 0, duration: 700.ms, delay: 100.ms),
                       ),
                   const SizedBox(height: 8),
                       Text(
@@ -254,12 +261,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: AppColors.bodyText,
                           fontWeight: FontWeight.w400,
                     ),
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 700.ms, delay: 200.ms)
+                      .slideY(begin: 0.1, end: 0, duration: 700.ms, delay: 200.ms),
                   const SizedBox(height: 20),
 
                       // Mostrar lista de usuarios guardados o formulario
                       if (_isLoadingUsuarios)
                         const Center(child: CircularProgressIndicator())
+                            .animate()
+                            .fadeIn(duration: 400.ms)
                       else if (!_mostrarFormularioCompleto &&
                           _usuariosGuardados.isNotEmpty &&
                           _usuarioSeleccionado == null)
@@ -269,6 +281,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           onUsuarioSeleccionado: _seleccionarUsuario,
                           onMostrarFormulario: _mostrarFormulario,
                         )
+                            .animate()
+                            .fadeIn(duration: 700.ms, delay: 300.ms)
+                            .slideY(begin: 0.1, end: 0, duration: 700.ms, delay: 300.ms)
                       else
                         LoginFormWidget(
                           usuarioController: _usuarioController,
@@ -283,7 +298,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? _volverALista
                               : null,
                           nombreUsuario: _usuarioSeleccionado?.nombre,
-                        ),
+                        )
+                            .animate()
+                            .fadeIn(duration: 700.ms, delay: 300.ms)
+                            .slideY(begin: 0.1, end: 0, duration: 700.ms, delay: 300.ms),
 
                       const SizedBox(height: 24),
                     ],

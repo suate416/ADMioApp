@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/orden_detalle.service.dart';
 import '../services/servicio.service.dart';
 import '../services/paquete.service.dart';
@@ -34,6 +35,7 @@ class _ServiciosYPaquetesWidgetState extends State<ServiciosYPaquetesWidget> {
   bool _isLoadingDatos = true;
   String _searchQuery = '';
   int _selectedTab = 0; // 0 = Servicios, 1 = Paquetes
+  int? _itemAgregadoId; // ID del item que acaba de ser agregado (para animación)
 
   @override
   void initState() {
@@ -94,18 +96,42 @@ class _ServiciosYPaquetesWidgetState extends State<ServiciosYPaquetesWidget> {
       );
 
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _itemAgregadoId = servicio.id; // Activar animación de parpadeo
+        });
+        
+        // Mostrar mensaje de agregado con nombre
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Servicio "${servicio.nombre}" agregado exitosamente'),
-            backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Se ha agregado exitosamente ${servicio.nombre} a la orden'),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(milliseconds: 1500),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
           ),
         );
+        
+        // Quitar el estado de parpadeo después de la animación
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (mounted) {
+            setState(() {
+              _itemAgregadoId = null;
+            });
+          }
+        });
+        
         if (widget.onServicioAgregado != null) {
           widget.onServicioAgregado!();
         }
-        setState(() {
-          _isLoading = false;
-        });
       }
     } catch (e) {
       if (mounted) {
@@ -144,18 +170,42 @@ class _ServiciosYPaquetesWidgetState extends State<ServiciosYPaquetesWidget> {
       );
 
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _itemAgregadoId = paquete.id + 100000; // Offset para diferenciar de servicios
+        });
+        
+        // Mostrar mensaje de agregado con nombre
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Paquete "${paquete.nombre}" agregado exitosamente'),
-            backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Agregado: ${paquete.nombre}'),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(milliseconds: 1500),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
           ),
         );
+        
+        // Quitar el estado de parpadeo después de la animación
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) {
+            setState(() {
+              _itemAgregadoId = null;
+            });
+          }
+        });
+        
         if (widget.onServicioAgregado != null) {
           widget.onServicioAgregado!();
         }
-        setState(() {
-          _isLoading = false;
-        });
       }
     } catch (e) {
       if (mounted) {
@@ -483,7 +533,21 @@ class _ServiciosYPaquetesWidgetState extends State<ServiciosYPaquetesWidget> {
                 ? null
                 : () => _agregarServicio(servicio),
           ),
-        );
+        )
+            .animate()
+            .fadeIn(duration: 700.ms)
+            .slideY(
+              begin: 0.1,
+              end: 0,
+              duration: 700.ms,
+              delay: (index * 100).ms,
+            )
+            // Animación de parpadeo cuando se agrega
+            .animate(target: _itemAgregadoId == servicio.id ? 1 : 0)
+            .shimmer(
+              duration: 600.ms,
+              color: AppColors.success.withOpacity(0.5),
+            );
       },
     );
   }
@@ -670,7 +734,21 @@ class _ServiciosYPaquetesWidgetState extends State<ServiciosYPaquetesWidget> {
                 ? null
                 : () => _agregarPaquete(paquete),
           ),
-        );
+        )
+            .animate()
+            .fadeIn(duration: 700.ms)
+            .slideY(
+              begin: 0.1,
+              end: 0,
+              duration: 700.ms,
+              delay: (index * 100).ms,
+            )
+            // Animación de parpadeo cuando se agrega
+            .animate(target: _itemAgregadoId == paquete.id + 100000 ? 1 : 0)
+            .shimmer(
+              duration: 600.ms,
+              color: AppColors.success.withOpacity(0.5),
+            );
       },
     );
   }

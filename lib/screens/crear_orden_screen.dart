@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/auth_service.dart';
 import '../services/orden.service.dart';
 import '../services/estacion.service.dart';
@@ -448,7 +449,10 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                     ),
                   ),
                 ),
-              ),
+              )
+                  .animate()
+                  .fadeIn(duration: 500.ms)
+                  .slideY(begin: 0.2, end: 0, duration: 500.ms),
           ],
         ),
       ),

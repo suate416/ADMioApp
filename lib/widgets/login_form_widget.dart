@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../config/app_colors.dart';
 
 class LoginFormWidget extends StatefulWidget {
@@ -61,7 +62,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                 ),
               ],
             ),
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .slideX(begin: -0.1, end: 0, duration: 600.ms),
         // Card contenedor para los campos
         Container(
           padding: const EdgeInsets.all(24),
@@ -126,7 +130,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                     }
                     return null;
                   },
-                ),
+                )
+                    .animate()
+                    .fadeIn(duration: 700.ms, delay: 100.ms)
+                    .slideY(begin: 0.1, end: 0, duration: 700.ms, delay: 100.ms),
                 const SizedBox(height: 20),
 
                 // Campo de contraseña
@@ -188,7 +195,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                     }
                     return null;
                   },
-                ),
+                )
+                    .animate()
+                    .fadeIn(duration: 700.ms, delay: 200.ms)
+                    .slideY(begin: 0.1, end: 0, duration: 700.ms, delay: 200.ms),
               ],
             ),
           ),
@@ -244,7 +254,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                     ),
                   ),
           ),
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 400.ms, delay: 300.ms),
+            
       ],
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/orden.service.dart';
 import '../models/orden.model.dart';
 import '../config/app_colors.dart';
@@ -303,7 +304,15 @@ class _ListaEsperaWidgetState extends State<ListaEsperaWidget> {
                           color: AppColors.gray300,
                         ),
                     ],
-                  );
+                  )
+                      .animate()
+                      .fadeIn(duration: 700.ms)
+                      .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 700.ms,
+                        delay: (index * 100).ms,
+                      );
                 },
               ),
             ),

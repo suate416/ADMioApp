@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/orden.service.dart';
 import '../services/orden_detalle.service.dart';
 import '../models/orden.model.dart';
@@ -334,7 +335,15 @@ class _OrdenesPasadasScreenState extends State<OrdenesPasadasScreen> {
                     itemBuilder: (context, index) {
                       final orden = _ordenesFiltradas[index];
                       final isExpanded = _expandedOrdenes[orden.id] ?? false;
-                      return _buildOrdenExpandible(orden, isExpanded);
+                      return _buildOrdenExpandible(orden, isExpanded)
+                          .animate()
+                          .fadeIn(duration: 700.ms)
+                          .slideY(
+                            begin: 0.1,
+                            end: 0,
+                            duration: 700.ms,
+                            delay: (index * 100).ms,
+                          );
                     },
                   ),
           ),

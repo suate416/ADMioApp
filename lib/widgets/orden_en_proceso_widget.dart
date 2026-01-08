@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../services/orden_detalle.service.dart';
 import '../services/orden.service.dart';
 import '../models/orden.model.dart';
@@ -582,7 +583,10 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
             ),
           ],
         ),
-      );
+      )
+          .animate()
+          .fadeIn(duration: 500.ms)
+          .scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1), duration: 500.ms);
     }
 
     if (_isLoading) {
@@ -894,5 +898,4 @@ class _OrdenEnProcesoWidgetState extends State<OrdenEnProcesoWidget> {
     );
   }
 }
-
 
