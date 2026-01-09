@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"admio-app","appId":"1:487937379554:android:53431dcd145928c8c8a2bb","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"admio-app","configurations":{"android":"1:487937379554:android:53431dcd145928c8c8a2bb","ios":"1:487937379554:ios:eac190403d6ee6f4c8a2bb"}}}}}}
