@@ -95,10 +95,95 @@ local.properties
 **/local.properties
 *.local
 
-# Firebase (opcional - descomenta si no quieres versionar estos archivos)
-# **/android/app/google-services.json
-# **/ios/Runner/GoogleService-Info.plist
-# **/ios/firebase_app_id_file.json
+# Firebase Configuration Files (sensitive - should not be versioned)
+# Android
+/android/app/google-services.json
+**/google-services.json
+
+# iOS
+**/ios/Runner/GoogleService-Info.plist
+**/ios/firebase_app_id_file.json
+**/ios/GoogleService-Info.plist
+**/ios/*/GoogleService-Info.plist
+
+# Firebase CLI and configuration
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.firebaserc
+firebase.json
+.firebase/
+
+# Firebase Hosting
+.firebase/hosting/*
+.firebase/hosting.cache
+
+# Firebase Functions
+functions/lib/
+functions/node_modules/
+**/functions/.env
+**/functions/.runtimeconfig.json
+
+# Firebase Storage Rules
+storage.rules
+storage.rules.backup
+
+# Firebase Realtime Database Rules
+database.rules.json
+database.rules.backup.json
+
+# Firebase Firestore Rules
+firestore.rules
+firestore.indexes.json
+firestore.rules.backup
+
+# Firebase Extensions
+extensions/
+.firebaseextensions/
+
+# Firebase Emulator Suite
+ui-debug.log
+ui-debug.*.log
+emulator-debug.log
+
+# Firebase Cloud Messaging
+**/fcm_options.dart
+**/firebase_messaging_options.dart
+
+# Firebase Analytics
+.analytics/
+**/.analytics/
+analytics-*.log
+
+# Firebase App Distribution
+app-distribution-*.log
+
+# Firebase Performance Monitoring
+firebase-performance-*.log
+
+# Firebase Crashlytics
+crashlytics-*.log
+crashlytics.properties
+**/crashlytics.properties
+
+# Firebase Remote Config
+remoteconfig-*.log
+
+# Firebase Test Lab
+test-results/
+**/test-results/
+firebase-test-*.log
+
+# Firebase Storage
+.firebasestorage/
+
+# Firebase Auth
+.firebaseauth/
+
+# Firebase generated files
+*.firebaserc
+.firebasebaserc
+firebaserc.json
 
 # macOS
 .DS_Store
